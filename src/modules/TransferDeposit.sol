@@ -37,8 +37,7 @@ contract TransferDeposit is Ownable {
     function enroll(
         uint256 id,
         address enrollee,
-        address sender,
-        bytes calldata data
+        address sender
     ) external payable virtual onlyOwner returns (bool) {
         if (msg.value > 0) revert IncorrectValue();
 
@@ -55,8 +54,7 @@ contract TransferDeposit is Ownable {
     function cancel(
         uint256 id,
         address owner,
-        address[] calldata registrations,
-        bytes calldata data
+        address[] calldata registrations
     ) external virtual onlyOwner returns (bool) {
         IERC20 token = IERC20(conditions[id].tokenAddress);
 
@@ -77,16 +75,14 @@ contract TransferDeposit is Ownable {
 
     function checkAttendees(
         uint256 id,
-        address[] calldata attendees,
-        bytes calldata data
+        address[] calldata attendees
     ) external virtual onlyOwner returns (bool) {
         return true;
     }
 
     function settle(
         uint256 id,
-        address[] calldata attendees,
-        bytes calldata data
+        address[] calldata attendees
     ) external virtual onlyOwner returns (bool) {
         (bool success, uint256 fundFee) = Math.tryDiv(
             totalFunded[id],
