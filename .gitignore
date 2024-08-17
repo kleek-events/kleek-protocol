@@ -1,6 +1,10 @@
 # Compiler files
 cache/
+cache_hardhat/
 out/
+node_modules/
+artifacts/
+.openzeppelin/
 
 # Ignores development broadcast logs
 !/broadcast
@@ -12,5 +16,6 @@ docs/
 
 # Dotenv file
 .env
+.env.*
 
 .DS_Store
