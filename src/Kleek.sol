@@ -20,17 +20,18 @@ contract Kleek is
 {
     mapping(uint256 => EventRecord) internal eventRecords;
     mapping(address => bool) internal conditionModules;
-    uint256 public eventCount = 0;
+    uint256 public eventCount;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
     }
 
-    function initialize(address initialOwner) public initializer {
+    function initialize() public initializer {
         __Pausable_init();
-        __Ownable_init(initialOwner);
+        __Ownable_init(msg.sender);
         __UUPSUpgradeable_init();
+        eventCount = 0;
     }
 
     function whitelistConditionModule(
@@ -58,10 +59,10 @@ contract Kleek is
         address _conditionModule,
         bytes calldata _conditionModuleData
     ) external {
-        verifyConditionModule(_conditionModule);
-        verifyEndDate(_endDate);
-        verifyRegisterBefore(_registerBefore, _endDate);
-        verifyCapacity(_capacity);
+        isValidConditionModule(_conditionModule);
+        isValidEndDate(_endDate);
+        isValidRegisterBefore(_registerBefore, _endDate);
+        isValidCapacity(_capacity);
 
         bool result = IConditionModule(_conditionModule).initialize(
             eventCount,
@@ -90,39 +91,37 @@ contract Kleek is
         eventCount++;
     }
 
-    function updateContentUri(uint256 id, string calldata contentUri) external {
-        require(id < eventCount, "InvalidEventId");
+    function updateContentUri(
+        uint256 _id,
+        string calldata _contentUri
+    ) external {
+        isValidEvent(_id);
+        isRegistrationOpen(_id);
+        isEventOwner(_id);
 
-        EventRecord storage eventRecord = eventRecords[id];
-        require(eventRecord.status == Status.Active, "InactiveEvent");
-        require(eventRecord.owner == msg.sender, "AccessDenied");
-        require(eventRecord.endDate > block.timestamp, "InvalidDate");
+        eventRecords[_id].contentUri = _contentUri;
 
-        eventRecord.contentUri = contentUri;
-
-        emit EventUpdated(id, msg.sender, contentUri, block.timestamp);
+        emit EventUpdated(_id, msg.sender, _contentUri, block.timestamp);
     }
 
-    // function enroll(uint256 _id, address _attendee) external {
-    //     EventRecord storage eventRecord = eventRecords[_id];
-    //     require(eventRecord.status == Status.Active, "InactiveEvent");
-    //     require(eventRecord.endDate > block.timestamp, "InvalidDate");
-    //     require(eventRecord.registerBefore > block.timestamp, "DealineReached");
-    //     require(eventRecord.capacity > 0, "LimitReached");
-    //     require(
-    //         eventRecord.attendees.length < eventRecord.capacity,
-    //         "CapacityReached"
-    //     );
-    //     require(
-    //         !eventRecord.registrations[msg.sender].registered,
-    //         "AlreadyRegistered"
-    //     );
+    function enroll(uint _id, address _enrollee) external {
+        isValidEvent(_id);
+        isRegistrationOpen(_id);
+        isEventNotFull(_id);
+        isNotEnrolled(_id, _enrollee);
 
-    //     eventRecord.attendees.push(msg.sender);
-    //     eventRecord.registrations[msg.sender].registered = true;
+        bool result = IConditionModule(eventRecords[_id].conditionModule)
+            .enroll(_id, _enrollee, msg.sender);
+        if (!result) revert UnexpectedModuleError();
 
-    //     emit NewEnrollee(_id, _attendee, msg.sender, block.timestamp);
-    // }
+        eventRecords[_id].people[_enrollee].enrolled = true;
+        eventRecords[_id].peopleIndex[
+            eventRecords[_id].totalEnrollees
+        ] = _enrollee;
+        eventRecords[_id].totalEnrollees++;
+
+        emit NewEnrollee(_id, _enrollee, msg.sender, block.timestamp);
+    }
 
     // function checkAttendees(
     //     uint256 eventId,
@@ -148,17 +147,17 @@ contract Kleek is
     //     );
     // }
 
-    /* Require function */
-    function verifyConditionModule(address _conditionModule) internal view {
+    /* Verifiers */
+    function isValidConditionModule(address _conditionModule) internal view {
         if (_conditionModule == address(0)) revert ModuleNotFound();
         if (!conditionModules[_conditionModule]) revert ModuleNotWhitelisted();
     }
 
-    function verifyEndDate(uint256 _endDate) internal view {
+    function isValidEndDate(uint256 _endDate) internal view {
         if (_endDate < block.timestamp) revert InvalidDate();
     }
 
-    function verifyRegisterBefore(
+    function isValidRegisterBefore(
         uint256 _registerBefore,
         uint256 _endDate
     ) internal view {
@@ -166,8 +165,34 @@ contract Kleek is
             revert InvalidDate();
     }
 
-    function verifyCapacity(uint256 _capacity) internal pure {
+    function isValidCapacity(uint256 _capacity) internal pure {
         if (_capacity < 0) revert InvalidCapacity();
+    }
+
+    function isValidEvent(uint256 _id) internal view {
+        if (eventRecords[_id].owner == address(0)) revert EventNotFound();
+        if (eventRecords[_id].status != Status.Active) revert InactiveEvent();
+    }
+
+    function isRegistrationOpen(uint256 _id) internal view {
+        if (eventRecords[_id].registerBefore < block.timestamp)
+            revert RegistrationClosed();
+    }
+
+    function isEventNotFull(uint256 _id) internal view {
+        if (
+            eventRecords[_id].capacity > 0 &&
+            eventRecords[_id].capacity == eventRecords[_id].totalEnrollees
+        ) revert CapacityReached();
+    }
+
+    function isNotEnrolled(uint256 _id, address _enrollee) internal view {
+        if (eventRecords[_id].people[_enrollee].enrolled)
+            revert AlreadyEnrolled();
+    }
+
+    function isEventOwner(uint256 _id) internal view {
+        if (eventRecords[_id].owner != msg.sender) revert AccessDenied();
     }
 
     /* Getters */
@@ -183,6 +208,7 @@ contract Kleek is
             uint256 capacity,
             string memory contentUri,
             address conditionModule,
+            uint256 totalEnrollees,
             Status status
         )
     {
@@ -193,6 +219,7 @@ contract Kleek is
             eventRecords[id].capacity,
             eventRecords[id].contentUri,
             eventRecords[id].conditionModule,
+            eventRecords[id].totalEnrollees,
             eventRecords[id].status
         );
     }

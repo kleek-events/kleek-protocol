@@ -4,21 +4,28 @@ pragma solidity ^0.8.26;
 error AccessDenied();
 error AlreadyEnrolled();
 error AlreadyStarted();
-error InactiveRecord();
+error CapacityReached();
+error EventNotFound();
+error InactiveEvent();
 error IncorrectValue();
 error InvalidAddress();
 error InvalidDate();
 error InvalidCapacity();
-error CapacityReached();
-error NoAttendees();
 error ModuleNotFound();
 error ModuleNotWhitelisted();
+error NoAttendees();
 error UnexpectedModuleError();
+error RegistrationClosed();
 
 enum Status {
     Active,
     Cancelled,
     Settled
+}
+
+struct People {
+    bool enrolled;
+    bool attended;
 }
 
 struct EventRecord {
@@ -30,11 +37,7 @@ struct EventRecord {
     uint256 registerBefore;
     uint256 capacity;
     address conditionModule;
-    address[] attendees;
-    mapping(address => Enrollees) enrollees;
-}
-
-struct Enrollees {
-    bool enrolled;
-    bool attended;
+    uint256 totalEnrollees;
+    mapping(uint256 => address) peopleIndex;
+    mapping(address => People) people;
 }
