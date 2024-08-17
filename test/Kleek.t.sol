@@ -40,20 +40,37 @@ contract KleekTest is Test {
         uint256 timestamp
     );
 
+    event NewEnrollee(
+        uint256 indexed eventId,
+        address indexed enrollee,
+        address sender,
+        uint256 timestamp
+    );
+
     function setUp() public {
         owner = address(this);
         user = address(0x1);
 
-        address kleekImplementation = address(new Kleek());
+        kleekImplementation = new Kleek();
         address proxy = UnsafeUpgrades.deployUUPSProxy(
-            kleekImplementation,
-            abi.encodeCall(Kleek.initialize, (owner))
+            address(kleekImplementation),
+            abi.encodeCall(Kleek.initialize, ())
         );
 
         // Cast the proxy address to the Kleek interface
         kleek = Kleek(address(proxy));
 
-        mockModule = new MockConditionModule();
+        mockModule = new MockConditionModule(address(kleek));
+    }
+
+    function testInitialize() public {
+        // Test that the contract is properly initialized
+        assertEq(kleek.owner(), owner);
+        assertEq(kleek.eventCount(), 0);
+
+        // Test that we can't initialize again
+        vm.expectRevert();
+        kleek.initialize();
     }
 
     function testWhitelistConditionModule() public {
@@ -136,6 +153,7 @@ contract KleekTest is Test {
             uint256 recordCapacity,
             string memory recordContentUri,
             address recordConditionModule,
+            uint256 totalEnrollees,
             Status recordStatus
         ) = kleek.getEventRecord(eventId);
 
@@ -145,6 +163,7 @@ contract KleekTest is Test {
         assertEq(recordRegisterBefore, registerBefore);
         assertEq(recordCapacity, 100);
         assertEq(recordConditionModule, address(mockModule));
+        assertEq(totalEnrollees, 0);
         assertEq(uint(recordStatus), uint(Status.Active));
     }
 
@@ -175,23 +194,71 @@ contract KleekTest is Test {
         kleek.updateContentUri(eventId, "ipfs://new-content");
 
         // Verify updated content URI
-        (, , , , string memory updatedContentUri, , ) = kleek.getEventRecord(
+        (, , , , string memory updatedContentUri, , , ) = kleek.getEventRecord(
             eventId
         );
         assertEq(updatedContentUri, "ipfs://new-content");
 
-        // Test updating content URI for non-existent event (should revert)
-        vm.expectRevert("InvalidEventId");
+        // Test updating non-existent event
+        vm.expectRevert(EventNotFound.selector);
         kleek.updateContentUri(999, "ipfs://non-existent");
 
-        // Test updating content URI for an event that has ended (should revert)
-        vm.warp(endDate + 1);
-        vm.expectRevert("InvalidDate");
-        kleek.updateContentUri(eventId, "ipfs://too-late");
-
-        // Test updating content URI by non-owner (should revert)
+        // Test updating by non-owner
         vm.prank(user);
-        vm.expectRevert("AccessDenied");
+        vm.expectRevert(AccessDenied.selector);
         kleek.updateContentUri(eventId, "ipfs://unauthorized");
+
+        // Test updating after event has ended
+        vm.warp(registerBefore + 1);
+        vm.expectRevert(RegistrationClosed.selector);
+        kleek.updateContentUri(eventId, "ipfs://too-late");
+    }
+
+    function testEnroll() public {
+        kleek.whitelistConditionModule(address(mockModule), true);
+
+        uint256 endDate = block.timestamp + 1 days;
+        uint256 registerBefore = block.timestamp + 12 hours;
+
+        uint256 eventId = kleek.eventCount();
+        kleek.create(
+            "ipfs://content",
+            endDate,
+            registerBefore,
+            100,
+            address(mockModule),
+            ""
+        );
+
+        vm.expectEmit(true, true, false, true);
+        emit NewEnrollee(eventId, user, owner, block.timestamp);
+        kleek.enroll(eventId, user);
+
+        // Test enrolling twice
+        vm.expectRevert(AlreadyEnrolled.selector);
+        kleek.enroll(eventId, user);
+
+        // Test enrolling in non-existent event
+        vm.expectRevert(EventNotFound.selector);
+        kleek.enroll(999, user);
+
+        // Test enrolling when event is full
+        uint256 smallEventId = kleek.eventCount();
+        kleek.create(
+            "ipfs://small-event",
+            endDate,
+            registerBefore,
+            1,
+            address(mockModule),
+            ""
+        );
+        kleek.enroll(smallEventId, user);
+        vm.expectRevert(CapacityReached.selector);
+        kleek.enroll(smallEventId, address(0x2));
+
+        // Test enrolling after registration is closed
+        vm.warp(registerBefore + 1);
+        vm.expectRevert(RegistrationClosed.selector);
+        kleek.enroll(eventId, address(0x2));
     }
 }

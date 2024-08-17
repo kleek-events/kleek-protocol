@@ -1,49 +1,48 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-import {IConditionModule} from "../interfaces/IConditionModule.sol";
-
-contract MockConditionModule is IConditionModule {
-    string public name = "MockConditionModule";
+contract MockConditionModule is Ownable {
+    constructor(address owner) Ownable(owner) {}
 
     function initialize(
-        uint256,
-        bytes calldata
-    ) external pure override returns (bool) {
-        return true;
-    }
-
-    function enroll(
-        uint256,
-        address,
-        address,
-        bytes calldata
-    ) external payable override returns (bool) {
+        uint256 id,
+        bytes calldata data
+    ) external virtual onlyOwner returns (bool) {
         return true;
     }
 
     function cancel(
-        uint256,
-        address,
-        address[] calldata,
-        bytes calldata
-    ) external pure override returns (bool) {
+        uint256 id,
+        address owner,
+        address[] calldata registrations
+    ) external virtual onlyOwner returns (bool) {
+        return true;
+    }
+
+    function enroll(
+        uint256 id,
+        address participant,
+        address sender
+    ) external payable virtual onlyOwner returns (bool) {
         return true;
     }
 
     function checkAttendees(
-        uint256,
-        address[] calldata,
-        bytes calldata
-    ) external pure override returns (bool) {
+        uint256 id,
+        address[] calldata attendees
+    ) external virtual onlyOwner returns (bool) {
         return true;
     }
 
     function settle(
-        uint256,
-        address[] calldata,
-        bytes calldata
-    ) external pure override returns (bool) {
+        uint256 id,
+        address[] calldata attendees
+    ) external virtual onlyOwner returns (bool) {
         return true;
+    }
+
+    function name() external pure returns (string memory) {
+        return "MockConditionModule";
     }
 }
