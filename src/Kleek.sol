@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Compatible with OpenZeppelin Contracts ^5.0.0
-pragma solidity ^0.8.26;
+pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -203,9 +203,6 @@ contract Kleek is
         view
         returns (
             address owner,
-            uint256 endDate,
-            uint256 registerBefore,
-            uint256 capacity,
             string memory contentUri,
             address conditionModule,
             uint256 totalEnrollees,
@@ -214,9 +211,6 @@ contract Kleek is
     {
         return (
             eventRecords[id].owner,
-            eventRecords[id].endDate,
-            eventRecords[id].registerBefore,
-            eventRecords[id].capacity,
             eventRecords[id].contentUri,
             eventRecords[id].conditionModule,
             eventRecords[id].totalEnrollees,

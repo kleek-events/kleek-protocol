@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.26;
+pragma solidity ^0.8.24;
 
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -59,8 +59,6 @@ contract ShareDeposit is Ownable {
         address enrollee,
         address sender
     ) external payable virtual onlyOwner returns (bool) {
-        if (msg.value > 0) revert IncorrectValue();
-
         IERC20 token = IERC20(conditions[id].tokenAddress);
         require(
             token.transferFrom(sender, address(this), conditions[id].depositFee)

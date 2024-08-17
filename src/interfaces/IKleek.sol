@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.26;
+pragma solidity ^0.8.24;
 
 import "../Common.sol";
 
@@ -62,9 +62,6 @@ interface IKleek {
         view
         returns (
             address owner,
-            uint256 endDate,
-            uint256 registerBefore,
-            uint256 capacity,
             string memory contentUri,
             address conditionModule,
             uint256 totalEnrollees,

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.26;
+pragma solidity ^0.8.24;
 
 import {Upgrades, UnsafeUpgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 import {Test, console} from "forge-std/Test.sol";
@@ -148,9 +148,6 @@ contract KleekTest is Test {
         // Verify event details
         (
             address recordOwner,
-            uint256 recordEndDate,
-            uint256 recordRegisterBefore,
-            uint256 recordCapacity,
             string memory recordContentUri,
             address recordConditionModule,
             uint256 totalEnrollees,
@@ -159,9 +156,6 @@ contract KleekTest is Test {
 
         assertEq(recordOwner, owner);
         assertEq(recordContentUri, "ipfs://content");
-        assertEq(recordEndDate, endDate);
-        assertEq(recordRegisterBefore, registerBefore);
-        assertEq(recordCapacity, 100);
         assertEq(recordConditionModule, address(mockModule));
         assertEq(totalEnrollees, 0);
         assertEq(uint(recordStatus), uint(Status.Active));
@@ -194,7 +188,7 @@ contract KleekTest is Test {
         kleek.updateContentUri(eventId, "ipfs://new-content");
 
         // Verify updated content URI
-        (, , , , string memory updatedContentUri, , , ) = kleek.getEventRecord(
+        (, string memory updatedContentUri, , , ) = kleek.getEventRecord(
             eventId
         );
         assertEq(updatedContentUri, "ipfs://new-content");

@@ -7,7 +7,7 @@ const PRIVATE_KEY = vars.get("PRIVATE_KEY");
 const ETHERSCAN_API_KEY = vars.get("ETHERSCAN_API_KEY");
 
 module.exports = {
-  solidity: "0.8.26",
+  solidity: "0.8.24",
   networks: {
     base: {
       url: `https://base-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}`,
