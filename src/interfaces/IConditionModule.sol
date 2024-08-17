@@ -16,26 +16,22 @@ interface IConditionModule {
     function enroll(
         uint256 id,
         address enrollee,
-        address sender,
-        bytes calldata data
+        address sender
     ) external payable returns (bool);
 
     function cancel(
         uint256 id,
         address owner,
-        address[] calldata registrations,
-        bytes calldata data
+        address[] calldata registrations
     ) external returns (bool);
 
     function checkAttendees(
         uint256 id,
-        address[] calldata attendees,
-        bytes calldata data
+        address[] calldata attendees
     ) external returns (bool);
 
     function settle(
         uint256 id,
-        address[] calldata attendees,
-        bytes calldata data
+        address[] calldata attendees
     ) external returns (bool);
 }

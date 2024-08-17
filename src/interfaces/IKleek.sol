@@ -67,6 +67,7 @@ interface IKleek {
             uint256 capacity,
             string memory contentUri,
             address conditionModule,
+            uint256 totalEnrollees,
             Status status
         );
 
@@ -94,11 +95,7 @@ interface IKleek {
     //     bytes calldata conditionModuleData
     // ) external;
 
-    //     function enroll(
-    //         uint256 eventId,
-    //         address enrollee,
-    //         bytes calldata conditionModuleData
-    //     ) external payable;
+    function enroll(uint256 _eventId, address _enrollee) external;
 
     //     function checkAttendees(
     //         uint256 eventId,
