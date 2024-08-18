@@ -1,66 +1,69 @@
-## Foundry
+# Kleek Smart Contracts 📜
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+This project was started as part of [WalletConnect hackathon](https://walletconnect.com/blog/build-the-new-internet-hackathon) in partnership with Coinbase, Safe, Magic and 1Inch.  
 
-Foundry consists of:
+## About Kleek
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+Kleek is a blockchain-based event management platform that revolutionizes the way events are organized and attended. By utilizing smart contracts, Kleek creates a more reliable and engaging event experience for both organizers and participants.
 
-## Documentation
+### Problem 🤔
 
-https://book.getfoundry.sh/
+Traditional event management faces several challenges:
+- High rates of no-shows and last-minute cancellations
+- Lack of incentives for attendee commitment
+- Inefficient and often manual processes for managing deposits and refunds
+- Limited transparency in attendance verification
 
-## Usage
+### Solution 💡
 
-### Build
+Kleek's smart contract system addresses these issues by:
+- Implementing an automated deposit mechanism
+- Creating financial incentives for attendance
+- Streamlining the process of attendance verification and refund distribution
+- Providing a transparent and immutable record of event transactions
 
-```shell
-$ forge build
-```
+## Technologies Used 🛠️
 
-### Test
+Our smart contracts are developed using cutting-edge blockchain technologies:
 
-```shell
-$ forge test
-```
+- **Solidity** 💎: The primary programming language for Ethereum smart contracts
+- **Foundry** 🔧: Powerful toolkit for Ethereum application development, used for testing
+- **Hardhat** 🏗️: Development environment for compiling, deploying, testing, and debugging Ethereum software
+- **OpenZeppelin Upgradeable Contracts** 🛡️: Library for secure smart contract development, using the UUPS proxy pattern for upgradeability
 
-### Format
+## Smart Contract Architecture 🏛️
 
-```shell
-$ forge fmt
-```
+The Kleek platform consists of the following main contracts:
 
-### Gas Snapshots
+1. **KleekCore.sol**: The core contract managing event creation, registration, and overall platform logic.
+2. **ShareDeposit.sol**: Handles deposit distribution for events where funds are shared among attendees.
+3. **TransferDeposit.sol**: Manages deposits for events where funds are transferred to a specific recipient.
+4. **IConditionModule.sol**: Interface for condition modules, allowing for flexible event rule implementation.
 
-```shell
-$ forge snapshot
-```
+## Getting Started 🚀
 
-### Anvil
+(Include instructions for setting up the development environment, compiling contracts, running tests, and deployment)
 
-```shell
-$ anvil
-```
+## Testing 🧪
 
-### Deploy
+(Provide information on how to run the test suite using Foundry)
 
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
+## Deployment 🚀
 
-### Cast
+(Include instructions on how to deploy the contracts using Hardhat)
 
-```shell
-$ cast <subcommand>
-```
+## Security 🔒
 
-### Help
+(Mention any security measures, audits, or best practices followed in the development of these contracts)
 
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+## Contributing 🤝
+
+(Include guidelines for contributing to the project, if applicable)
+
+## License 📄
+
+(Specify the license under which the project is released)
+
+## Contact 📧
+
+(Provide contact information or links to project maintainers)
