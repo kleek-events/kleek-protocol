@@ -4,18 +4,21 @@ pragma solidity ^0.8.24;
 import {Upgrades, UnsafeUpgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 import {Test, console} from "forge-std/Test.sol";
 
-import {Kleek} from "../src/Kleek.sol";
+import {KleekCore} from "../src/KleekCore.sol";
 import {IConditionModule} from "../src/interfaces/IConditionModule.sol";
 import {MockConditionModule} from "../src/mocks/MockConditionModule.sol";
-import "../src/interfaces/IKleek.sol";
+import "../src/interfaces/IKleekCore.sol";
 import "../src/Common.sol";
 
 contract KleekTest is Test {
-    Kleek public kleekImplementation;
-    Kleek public kleek;
+    KleekCore public kleekImplementation;
+    KleekCore public kleek;
     MockConditionModule public mockModule;
     address public owner;
     address public user;
+    address public user1;
+    address public user2;
+    address public user3;
 
     event ConditionModuleWhitelisted(
         address indexed module,
@@ -47,18 +50,28 @@ contract KleekTest is Test {
         uint256 timestamp
     );
 
+    event AttendeesChecked(
+        uint256 indexed eventId,
+        address[] attendees,
+        address sender,
+        uint256 timestamp
+    );
+
     function setUp() public {
         owner = address(this);
         user = address(0x1);
+        user1 = address(0x2);
+        user2 = address(0x3);
+        user3 = address(0x4);
 
-        kleekImplementation = new Kleek();
+        kleekImplementation = new KleekCore();
         address proxy = UnsafeUpgrades.deployUUPSProxy(
             address(kleekImplementation),
-            abi.encodeCall(Kleek.initialize, ())
+            abi.encodeCall(KleekCore.initialize, ())
         );
 
-        // Cast the proxy address to the Kleek interface
-        kleek = Kleek(address(proxy));
+        // Cast the proxy address to the KleekCore interface
+        kleek = KleekCore(address(proxy));
 
         mockModule = new MockConditionModule(address(kleek));
     }
@@ -237,8 +250,7 @@ contract KleekTest is Test {
         kleek.enroll(999, user);
 
         // Test enrolling when event is full
-        uint256 smallEventId = kleek.eventCount();
-        kleek.create(
+        uint256 smallEventId = kleek.create(
             "ipfs://small-event",
             endDate,
             registerBefore,
@@ -255,4 +267,125 @@ contract KleekTest is Test {
         vm.expectRevert(RegistrationClosed.selector);
         kleek.enroll(eventId, address(0x2));
     }
+
+    // function testCheckAttendees() public {
+    //     kleek.whitelistConditionModule(address(mockModule), true);
+
+    //     uint256 endDate = block.timestamp + 1 days;
+    //     uint256 registerBefore = block.timestamp + 12 hours;
+
+    //     uint256 eventId = kleek.create(
+    //         "ipfs://content",
+    //         endDate,
+    //         registerBefore,
+    //         100,
+    //         address(mockModule),
+    //         ""
+    //     );
+
+    //     // Enroll some users
+    //     kleek.enroll(eventId, user1);
+    //     kleek.enroll(eventId, user2);
+    //     kleek.enroll(eventId, user3);
+
+    //     // Prepare attendees array
+    //     address[] memory attendees = new address[](2);
+    //     attendees[0] = user1;
+    //     attendees[1] = user3;
+
+    //     // Expect the AttendeesChecked event to be emitted
+    //     vm.expectEmit(true, false, false, true);
+    //     emit AttendeesChecked(eventId, attendees, owner, block.timestamp);
+
+    //     // Check attendees
+    //     kleek.checkAttendees(eventId, attendees);
+
+    //     // Get the attendees and verify
+    //     address[] memory returnedAttendees = kleek.getEnrollees(eventId);
+
+    //     // Verify attendees were marked correctly
+    //     assertEq(returnedAttendees.length, 2);
+    //     assertTrue(
+    //         returnedAttendees[0] == user1 || returnedAttendees[1] == user1
+    //     );
+    //     assertTrue(
+    //         returnedAttendees[0] == user3 || returnedAttendees[1] == user3
+    //     );
+
+    //     // Check that user2 is not in the attendees list
+    //     for (uint i = 0; i < returnedAttendees.length; i++) {
+    //         assertTrue(returnedAttendees[i] != user2);
+    //     }
+
+    //     // Test checking attendees for non-existent event
+    //     vm.expectRevert(EventNotFound.selector);
+    //     kleek.checkAttendees(999, attendees);
+
+    //     // Test checking attendees by non-owner
+    //     vm.prank(user1);
+    //     vm.expectRevert(AccessDenied.selector);
+    //     kleek.checkAttendees(eventId, attendees);
+    // }
+
+    // function testGetAttendees() public {
+    //     kleek.whitelistConditionModule(address(mockModule), true);
+
+    //     uint256 endDate = block.timestamp + 1 days;
+    //     uint256 registerBefore = block.timestamp + 12 hours;
+
+    //     uint256 eventId = kleek.create(
+    //         "ipfs://content",
+    //         endDate,
+    //         registerBefore,
+    //         100,
+    //         address(mockModule),
+    //         ""
+    //     );
+
+    //     // Enroll some users
+    //     kleek.enroll(eventId, user1);
+    //     kleek.enroll(eventId, user2);
+    //     kleek.enroll(eventId, user3);
+
+    //     // Mark user1 and user3 as attendees
+    //     address[] memory attendees = new address[](2);
+    //     attendees[0] = user1;
+    //     attendees[1] = user3;
+    //     kleek.checkAttendees(eventId, attendees);
+
+    //     // Get the attendees
+    //     address[] memory returnedAttendees = kleek.getEnrollees(eventId);
+
+    //     // Check the number of attendees
+    //     assertEq(returnedAttendees.length, 2);
+
+    //     // Check that the returned attendees are correct
+    //     assertTrue(
+    //         returnedAttendees[0] == user1 || returnedAttendees[1] == user1
+    //     );
+    //     assertTrue(
+    //         returnedAttendees[0] == user3 || returnedAttendees[1] == user3
+    //     );
+
+    //     // Check that user2 is not in the attendees list
+    //     assertTrue(
+    //         returnedAttendees[0] != user2 && returnedAttendees[1] != user2
+    //     );
+
+    //     // Test getting attendees for non-existent event
+    //     vm.expectRevert(EventNotFound.selector);
+    //     kleek.getEnrollees(999);
+
+    //     // Test getting attendees for event with no attendees
+    //     uint256 emptyEventId = kleek.create(
+    //         "ipfs://empty-event",
+    //         endDate,
+    //         registerBefore,
+    //         100,
+    //         address(mockModule),
+    //         ""
+    //     );
+    //     address[] memory emptyAttendees = kleek.getEnrollees(emptyEventId);
+    //     assertEq(emptyAttendees.length, 0);
+    // }
 }

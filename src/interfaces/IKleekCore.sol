@@ -3,7 +3,7 @@ pragma solidity ^0.8.24;
 
 import "../Common.sol";
 
-interface IKleek {
+interface IKleekCore {
     /* Kleek events */
     event ConditionModuleWhitelisted(
         address indexed module,
@@ -43,7 +43,6 @@ interface IKleek {
     event AttendeesChecked(
         uint256 indexed eventId,
         address[] attendees,
-        bytes data,
         address sender,
         uint256 timestamp
     );
@@ -68,6 +67,8 @@ interface IKleek {
             Status status
         );
 
+    // function getEnrollees(uint256 _id) external view returns (address[] memory);
+
     /* Klee functions */
     function whitelistConditionModule(address module, bool enable) external;
 
@@ -79,7 +80,7 @@ interface IKleek {
         uint256 _capacity,
         address _conditionModule,
         bytes calldata _conditionModuleData
-    ) external;
+    ) external returns (uint256);
 
     function updateContentUri(
         uint256 eventId,
@@ -94,11 +95,10 @@ interface IKleek {
 
     function enroll(uint256 _eventId, address _enrollee) external;
 
-    //     function checkAttendees(
-    //         uint256 eventId,
-    //         address[] calldata attendees,
-    //         bytes calldata conditionModuleData
-    //     ) external;
+    // function checkAttendees(
+    //     uint256 eventId,
+    //     address[] calldata attendees
+    // ) external;
 
     //     function settle(
     //         uint256 eventId,

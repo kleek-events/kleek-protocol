@@ -7,16 +7,16 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-import {IKleek} from "./interfaces/IKleek.sol";
+import {IKleekCore} from "./interfaces/IKleekCore.sol";
 import {IConditionModule} from "./interfaces/IConditionModule.sol";
 import "./Common.sol";
 
-contract Kleek is
+contract KleekCore is
     Initializable,
     PausableUpgradeable,
     OwnableUpgradeable,
     UUPSUpgradeable,
-    IKleek
+    IKleekCore
 {
     mapping(uint256 => EventRecord) internal eventRecords;
     mapping(address => bool) internal conditionModules;
@@ -58,7 +58,7 @@ contract Kleek is
         uint256 _capacity,
         address _conditionModule,
         bytes calldata _conditionModuleData
-    ) external {
+    ) external returns (uint256) {
         isValidConditionModule(_conditionModule);
         isValidEndDate(_endDate);
         isValidRegisterBefore(_registerBefore, _endDate);
@@ -88,7 +88,10 @@ contract Kleek is
             block.timestamp
         );
 
+        uint256 newEventId = eventCount;
         eventCount++;
+
+        return newEventId;
     }
 
     function updateContentUri(
@@ -109,6 +112,7 @@ contract Kleek is
         isRegistrationOpen(_id);
         isEventNotFull(_id);
         isNotEnrolled(_id, _enrollee);
+        isNotEventOwner(_id, _enrollee);
 
         bool result = IConditionModule(eventRecords[_id].conditionModule)
             .enroll(_id, _enrollee, msg.sender);
@@ -124,10 +128,43 @@ contract Kleek is
     }
 
     // function checkAttendees(
-    //     uint256 eventId,
-    //     address[] calldata attendees,
-    //     bytes calldata conditionModuleData
-    // ) external {}
+    //     uint256 _id,
+    //     address[] calldata _attendees
+    // ) external {
+    //     isValidEvent(_id);
+    //     isEventOwner(_id);
+
+    //     uint attendeesCount = 0;
+    //     address[] memory validAttendees = new address[](_attendees.length);
+    //     for (uint256 i = 0; i < _attendees.length; i++) {
+    //         if (!eventRecords[_id].people[_attendees[i]].enrolled) {
+    //             continue;
+    //         }
+    //         if (eventRecords[_id].people[_attendees[i]].attended) {
+    //             continue;
+    //         }
+
+    //         eventRecords[_id].people[_attendees[i]].attended = true;
+    //         eventRecords[_id].totalEnrollees++;
+    //         validAttendees[attendeesCount] = _attendees[i];
+    //         attendeesCount++;
+    //     }
+
+    //     address[] memory attendees = new address[](attendeesCount);
+    //     for (uint256 i = 0; i < attendees.length; i++) {
+    //         if (validAttendees[i] == address(0)) {
+    //             continue;
+    //         }
+
+    //         attendees[i] = validAttendees[i];
+    //     }
+
+    //     bool result = IConditionModule(eventRecords[_id].conditionModule)
+    //         .checkAttendees(_id, attendees);
+    //     if (!result) revert UnexpectedModuleError();
+
+    //     emit AttendeesChecked(_id, attendees, msg.sender, block.timestamp);
+    // }
 
     // function settle(
     //     uint256 eventId,
@@ -195,6 +232,10 @@ contract Kleek is
         if (eventRecords[_id].owner != msg.sender) revert AccessDenied();
     }
 
+    function isNotEventOwner(uint256 _id, address _enrollee) internal view {
+        if (eventRecords[_id].owner == _enrollee) revert AccessDenied();
+    }
+
     /* Getters */
     function getEventRecord(
         uint256 id
@@ -217,6 +258,29 @@ contract Kleek is
             eventRecords[id].status
         );
     }
+
+    // function getEnrollees(
+    //     uint256 _id
+    // ) external view returns (address[] memory) {
+    //     uint totalEnrollees = 0;
+    //     address[] memory enrolless = new address[](
+    //         eventRecords[_id].totalEnrollees
+    //     );
+    //     for (uint256 i = 0; i < eventRecords[_id].totalEnrollees; i++) {
+    //         if (
+    //             !eventRecords[_id]
+    //                 .people[eventRecords[_id].peopleIndex[i]]
+    //                 .attended
+    //         ) {
+    //             continue;
+    //         }
+
+    //         enrolless[totalEnrollees] = eventRecords[_id].peopleIndex[i];
+    //         totalEnrollees++;
+    //     }
+
+    //     return enrolless;
+    // }
 
     /* Pausable */
     function pause() public onlyOwner {
