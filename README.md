@@ -2,6 +2,8 @@
 
 This project was started as part of [WalletConnect hackathon](https://walletconnect.com/blog/build-the-new-internet-hackathon) in partnership with Coinbase, Safe, Magic and 1Inch.  
 
+🏆 It [won the 2nd place](https://devfolio.co/projects/kleek-67d7) in the Coinbase Integration category.
+
 ## About Kleek
 
 Kleek is a blockchain-based event management platform that revolutionizes the way events are organized and attended. By utilizing smart contracts, Kleek creates a more reliable and engaging event experience for both organizers and participants.
